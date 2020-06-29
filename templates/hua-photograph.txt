@@ -1,0 +1,48 @@
+=={_int:filedesc_}==
+
+{_Photograph
+ |photographer = {{Vervaardiger | @replace: ", fotograaf", ""}}
+ |title = 
+ |description = {_nl|1={{Beschrijving}}_}
+ |depicted people = 
+ |depicted place = 
+ |date = {_other date|between|{{ Datering_vroegst | @date: "%Y-%m-%d", "%d-%m-%Y" }}|{{ Datering_laatst | @date: "%Y-%m-%d", "%d-%m-%Y" }}_}
+ |medium = 
+ |dimensions =  {_size|unit=cm|width={{Afmeting | @replace: " cm","" | @replace: "hoogte ","" | @replace: "breedte ", ""}}|height={{Afmeting_2 | @replace: " cm","" | @replace: "hoogte ","" | @replace: "breedte ", ""}}_}
+ |institution = {_Institution:Het Utrechts Archief_}
+ |department = 
+ |references = 
+ |object history = 
+ |exhibition history = 
+ |credit line = 
+ |inscriptions = 
+ |notes = {{notities}}
+ |accession number = GUID: [https://hetutrechtsarchief.nl/beeld/{{GUID}} {{GUID}}], HUA Catalogusnummer: [https://hetutrechtsarchief.nl/collectie/beeldmateriaal/catalogusnummer/{{Catalogusnummer}} {{Catalogusnummer}}]
+ |source = [https://hetutrechtsarchief.nl/beeld/{{GUID}} Het Utrechts Archief - Catalogusnummer {{Catalogusnummer}}]
+ |permission = 
+ |other_versions = 
+_}
+
+{% if categorieen %}
+{%- for spatial in `spatials | @split: "|"` -%}
+{_Object location|wikidata={{spatial | @replace: "http://www.wikidata.org/entity/", ""}}_}
+{%- endfor -%}
+{%- endif %}
+
+=={_int:license-header_}==
+{% assign license = `licentie | @replace: "CC0 1.0", "Cc-zero" | @replace: "CC BY 4.0","CC-BY-4.0" | @replace: "Publiek Domein 1.0","PD-old" ` -%}
+{% if license == "CC-BY-4.0" -%}
+{_{{license | @append: '|' | @append: Auteursrechthouder }}_}
+{% else -%}
+{_{{license }}_}
+{% endif -%}
+ 
+{_Het Utrechts Archief_}
+
+{% if categorieen %}
+{% for category in `categorieen | @split: "|"` -%}
+[[Category:{{category}}]]
+{% endfor %}
+{% else %}
+{_subst:unc_}
+{% endif %}
