@@ -2,7 +2,7 @@
 Deze repo bevat Python scripts voor het uploaden van de Beeldbank van Het Utrechts Archief naar Wikimedia Commons.
 De code is generiek opgezet en hierdoor hopelijk ook geschikt voor andere archieven of GLAM-instellingen.
 
-# Werkwijze
+## Werkwijze
 1. Maak een tabel (CSV bestand) met relevante metadata van de te uploaden afbeeldingen.
 2. Download of kopieer de afbeeldingen die je wilt uploaden naar je computer.
 3. Maak een template voor Wikimedia Commons (zie `templates/` map. Binnen het template kun je gebruik maken van Mediawiki en Liquid syntax.
@@ -13,6 +13,6 @@ De code is generiek opgezet en hierdoor hopelijk ook geschikt voor andere archie
   LOCAL_IMAGE_TEMPLATE - mini template voor de bestandsnaam op je computer
   REMOTE_IMAGE_TEMPLATE - mini template hoe het bestand remote moet gaan heten. Gebruik een leesbare en duidelijke beschrijvende naam.
 
-# Licentie
+## Licentie
 Dit script is vrij beschikbaar via de CC0 1.0 Publiek Domein Verklaring.
 Bij vragen of opmerkingen mag je me mailen r.companje@hetutrechtsarchief.nl
