@@ -13,6 +13,11 @@ De code is generiek opgezet en hierdoor hopelijk ook geschikt voor andere archie
    * LOCAL_IMAGE_TEMPLATE - mini template voor de bestandsnaam op je computer
    * REMOTE_IMAGE_TEMPLATE - mini template hoe het bestand remote moet gaan heten. Gebruik een leesbare en duidelijke beschrijvende naam.
 
+Voorbeeld:
+```
+./img2commons csv/queryResults-1row.csv  templates/hua-photograph  templates/hua-local-file  templates/hua-remote-file
+```
+
 ## Licentie
 Dit script is vrij beschikbaar via de CC0 1.0 Publiek Domein Verklaring.
 Bij vragen of opmerkingen mag je me mailen r.companje@hetutrechtsarchief.nl
