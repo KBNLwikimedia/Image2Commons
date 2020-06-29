@@ -6,7 +6,7 @@
  |description = {_nl|1={{Beschrijving}}_}
  |depicted people = 
  |depicted place = 
- |date = {_other date|between|{{ Datering_vroegst | @date: "%Y-%m-%d", "%d-%m-%Y" }}|{{ Datering_laatst | @date: "%Y-%m-%d", "%d-%m-%Y" }}_}
+ |date = {_other date|between|{{ Datering_vroegst | @replace: "00-00-", "01-01-" | @date: "%Y-%m-%d", "%d-%m-%Y" }}|{{ Datering_laatst | @replace: "00-00-", "01-01-" | @date: "%Y-%m-%d", "%d-%m-%Y" }}_}
  |medium = 
  |dimensions =  {_size|unit=cm|width={{Afmeting | @replace: " cm","" | @replace: "hoogte ","" | @replace: "breedte ", ""}}|height={{Afmeting_2 | @replace: " cm","" | @replace: "hoogte ","" | @replace: "breedte ", ""}}_}
  |institution = {_Institution:Het Utrechts Archief_}
@@ -23,7 +23,7 @@
  |other_versions = 
 _}
 
-{% if categorieen %}
+{%- if spatials -%}
 {%- for spatial in `spatials | @split: "|"` -%}
 {_Object location|wikidata={{spatial | @replace: "http://www.wikidata.org/entity/", ""}}_}
 {%- endfor -%}
@@ -42,6 +42,8 @@ _}
 {% if categorieen %}
 {% for category in `categorieen | @split: "|"` -%}
 [[Category:{{category | @replace: "https://commons.wikimedia.org/wiki/Category:", "" }}]]
-{% endfor %}
-{% else %}{_subst:unc_}{% endif %}
+{% endfor -%}
+{% else %}
+{_subst:unc_}
+{% endif %}
 [[Category:Uploaded with Img2Commons]]
