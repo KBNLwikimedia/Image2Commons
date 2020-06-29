@@ -1,4 +1,4 @@
-# Img2Commons
+# Image2Commons
 Deze repo bevat Python scripts voor het uploaden van de Beeldbank van Het Utrechts Archief naar Wikimedia Commons.
 De code is generiek opgezet en hierdoor hopelijk ook geschikt voor andere archieven of GLAM-instellingen.
 
