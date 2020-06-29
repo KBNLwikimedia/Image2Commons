@@ -41,8 +41,7 @@ _}
 
 {% if categorieen %}
 {% for category in `categorieen | @split: "|"` -%}
-[[Category:{{category}}]]
+[[Category:{{category | @replace: "https://commons.wikimedia.org/wiki/Category:", "" }}]]
 {% endfor %}
-{% else %}
-{_subst:unc_}
-{% endif %}
+{% else %}{_subst:unc_}{% endif %}
+[[Category:Uploaded with Img2Commons]]
