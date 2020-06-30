@@ -21,3 +21,53 @@ Voorbeeld:
 ## Licentie
 Dit script is vrij beschikbaar via de CC0 1.0 Publiek Domein Verklaring.
 Bij vragen of opmerkingen mag je me mailen r.companje@hetutrechtsarchief.nl
+
+## SPARQL query om de CSV te produceren
+<https://data.netwerkdigitaalerfgoed.nl/hetutrechtsarchief/Beeldbank-voor-Wikimedia/sparql/Beeldbank-voor-Wikimedia>
+```SPARQL
+PREFIX dct: <http://purl.org/dc/terms/>
+PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX v: <https://archief.io/veld#>
+PREFIX id: <https://archief.io/id/>
+PREFIX licentie: <https://archief.io/def/fnc_lic#>
+
+SELECT ?GUID, ?Catalogusnummer, ?Beschrijving, ?notities, group_concat(distinct ?spatial,"|") as ?spatials, group_concat(distinct ?cat,"|") as ?categorieen, ?Datering_vroegst, ?Datering_laatst, ?licentie, ?Auteursrechthouder, ?Vervaardiger, ?cxtwd_uitgdruk, ?Afmeting, ?Afmeting_2
+
+WHERE {
+  ?foto v:Deelcollectie <https://archief.io/def/Deelcollectie#Nederlandse-Spoorwegen> .
+  BIND(REPLACE(str(?foto), "https://archief.io/id/", "") AS ?GUID)
+
+  OPTIONAL { ?foto v:Catalogusnummer ?Catalogusnummer }
+  OPTIONAL { ?foto v:Beschrijving ?_Beschrijving 
+    BIND(REPLACE(?_Beschrijving, "<ZR>"," ") as ?Beschrijving)
+  }
+  #OPTIONAL { ?foto v:LBTWD ?LBTWD } # let op LBTWD ipv THWTW - komt maar 3x voor in FOT_DOC_2
+  #OPTIONAL { ?foto v:THTWD ?THTWD } # let op THTWD ipv THWTW - komt niet voor in FOT_DOC_2
+  OPTIONAL { ?foto v:THWTW ?trefwoord . ?trefwoord skos:closeMatch ?cat . }
+  OPTIONAL { ?foto v:Afmeting ?Afmeting }
+  OPTIONAL { ?foto v:Afmeting_2 ?Afmeting_2 }
+  OPTIONAL { ?foto v:Datering_vroegst ?Datering_vroegst }
+  OPTIONAL { ?foto v:Datering_laatst ?Datering_laatst }
+  OPTIONAL { ?foto v:Auteursrechthouder/rdfs:label ?Auteursrechthouder }
+  OPTIONAL { ?foto v:Vervaardiger/rdfs:label ?Vervaardiger }
+
+  #opmerkingen etc.
+  OPTIONAL { ?foto v:Opmerkingen ?Opmerkingen }
+  OPTIONAL { ?foto v:Opschrift ?Opschrift }
+  OPTIONAL { ?foto v:Opschrift_2 ?Opschrift_2 }
+  BIND(REPLACE(CONCAT(?Opmerkingen, " ", ?Opschrift, " ", ?Opschrift_2),"<ZR>"," ") AS ?notities)
+
+  #licentie etc.
+  ?foto v:fnc_lic ?licentieURI .
+  ?foto v:fnc_lic/rdfs:label ?licentie .
+
+  OPTIONAL {?foto dct:spatial ?spatial
+    FILTER strstarts(xsd:string(?spatial), "http://www.wikidata.org/entity/")
+  }
+
+  FILTER (?licentieURI IN (licentie:Publiek-Domein-10, licentie:CC0-10, licentie:CC-BY-40 )) 
+} 
+LIMIT 5000
+OFFSET 0
+```

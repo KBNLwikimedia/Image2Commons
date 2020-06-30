@@ -1,1 +1,1 @@
-HUA-{{Catalogusnummer}}-{{Beschrijving | @replace: "<ZR>"," " | @slice: 0,255 | @append: ".jpg" | @replace: "..", "." }}
+HUA-{{Catalogusnummer}}-{{Beschrijving | @replace: "<ZR>"," " | @replace: "  ", " " | @slice: 0,200 | @append: ".jpg" | @replace: "..", "." }}

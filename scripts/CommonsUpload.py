@@ -34,6 +34,10 @@ def login(username, password, session_file_name="session"):
   # return response
   return r2
 
+def exists(image_remote_filename):
+  response = requests.get(api_url + "?action=query&format=json&titles=File:" + image_remote_filename)
+  return '-1' not in response.json()['query']['pages']
+
 def upload(image_local_filename, image_remote_filename, meta_text, session_file_name="session"):
   files={'file': (image_remote_filename, open(image_local_filename,'rb'), 'multipart/form-data')}
 

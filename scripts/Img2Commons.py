@@ -1,11 +1,10 @@
 #!/usr/local/bin/python3
-import json
-import sys
+import json,sys,os,argparse
 from CommonsUpload import login
+from CommonsUpload import exists
 from CommonsUpload import upload
 import pandas
 from liquid import Liquid
-import argparse
 
 if __name__ == '__main__':
   parser = argparse.ArgumentParser(description='Uploads images in batch to Wikimedia Commons')
@@ -21,6 +20,7 @@ if __name__ == '__main__':
   args = parser.parse_args()
 
 if args.login:
+  print("Login...")
   response = login(args.login[0],args.login[1],"session")
   print(json.dumps(response.json(), indent=4, sort_keys=True))
 
@@ -29,11 +29,13 @@ if args.login:
 # sys.exit()
 
 # read csv
+print("Load CSV...")
 csv_df = pandas.read_csv(args.csv)
 csv_df.fillna("", inplace=True) #fill empty cells with ""
 csv_dict=csv_df.to_dict(orient='records')
 
 # read templates
+print("Load templates...")
 liq_meta = Liquid(args.metadata, liquid_from_file=True) 
 liq_local = Liquid(args.local_image, liquid_from_file=True) 
 liq_remote = Liquid(args.remote_image, liquid_from_file=True) 
@@ -50,21 +52,42 @@ for i in range(0,len(csv_dict)):
     local_filename = liq_local.render(**row)
     remote_filename = liq_remote.render(**row)
     
-    print(local_filename, "---->", remote_filename)
+    print("Line",str(i+2)+":",os.path.basename(local_filename), "---->", remote_filename)
+
+    # https://commons.wikimedia.org/w/api.php?action=query&titles=HUA-168481-Portret_van_J.M._ten_Broek,_verkeersleider_bij_de_N.S._in_het_N.S.-station_Amsterdam_C.S._te_Amsterdam.jpg
+
+    if exists(remote_filename):
+      print("Upload Error: File Exists",remote_filename)
+      continue
 
     if args.verbose>1:
       print(metadata)
 
     if args.action=='upload':
       response = upload(local_filename, remote_filename, metadata);
-      # if args.verbose>1 or response.status_code!=200: -->> status_code altijd 200 ook bij error
       
-# print
-      print(json.dumps(response.json(), indent=4, sort_keys=True))
-      # else:
-      # print("ok")
-  except OSError as e:
-    print("ERROR: Skipping line",i+2,e)
+      data = response.json()
+
+      if 'error' in data and 'code' in data['error']:
+        print("Upload Error",data['error']['code'],data['error']['info'])
+
+        if data['error']['code']=="ratelimited":   #stop trying and wait. else continue to next
+          sys.exit()
+
+      elif 'upload' in data and 'result' in data['upload']: 
+        print(data['upload']['result'])
+        print(data['upload']['imageinfo']['descriptionurl'])
+
+        if 'warnings' in data['upload']:
+          print(data['upload']['warnings'])
+
+      else:
+        print(json.dumps(data, indent=4, sort_keys=True))
+
+      print()
+
+  except OSError as err:
+    print("OS Error: Skipping line",i+2,err)
     pass
 
 
