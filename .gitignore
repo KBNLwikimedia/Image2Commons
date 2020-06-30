@@ -1,4 +1,5 @@
 session
 __pycache__/
 .DS_Store
-logfile
+logs/*
+csv/*
