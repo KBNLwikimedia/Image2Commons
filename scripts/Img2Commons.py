@@ -1,6 +1,7 @@
 #!/usr/local/bin/python3
 import json
 import sys
+from CommonsUpload import login
 from CommonsUpload import upload
 import pandas
 from liquid import Liquid
@@ -12,9 +13,20 @@ if __name__ == '__main__':
   parser.add_argument('--metadata',help="metadata template", required=True)
   parser.add_argument('--local-image',help="local image template", required=True)
   parser.add_argument('--remote-image',help="remote image template", required=True)
+  parser.add_argument('--login',nargs=2)
+  # response = login(sys.argv[1], sys.argv[2], "session")
+
   parser.add_argument('action', choices=['test', 'upload'])
   parser.add_argument('--verbose', '-v', action='count', default=0)
   args = parser.parse_args()
+
+if args.login:
+  response = login(args.login[0],args.login[1],"session")
+  print(json.dumps(response.json(), indent=4, sort_keys=True))
+
+# print(vars(args))
+# print(args)
+# sys.exit()
 
 # read csv
 csv_df = pandas.read_csv(args.csv)
@@ -28,24 +40,31 @@ liq_remote = Liquid(args.remote_image, liquid_from_file=True)
 
 # for each record
 for i in range(0,len(csv_dict)):
-  row = csv_dict[i]
-  metadata = liq_meta.render(**row)
-  metadata = metadata.replace("{_","{{")
-  metadata = metadata.replace("_}","}}")
-
-  local_filename = liq_local.render(**row)
-  remote_filename = liq_remote.render(**row)
   
-  print(local_filename, "---->", remote_filename)
+  try:
+    row = csv_dict[i]
+    metadata = liq_meta.render(**row)
+    metadata = metadata.replace("{_","{{")
+    metadata = metadata.replace("_}","}}")
 
-  if args.verbose>1:
-    print(metadata)
+    local_filename = liq_local.render(**row)
+    remote_filename = liq_remote.render(**row)
+    
+    print(local_filename, "---->", remote_filename)
 
-  if args.action=='upload':
-    response = upload(local_filename, remote_filename, metadata);
-    # if args.verbose>1 or response.status_code!=200: -->> status_code altijd 200 ook bij error
-    print(json.dumps(response.json(), indent=4, sort_keys=True))
-    # else:
-    # print("ok")
+    if args.verbose>1:
+      print(metadata)
+
+    if args.action=='upload':
+      response = upload(local_filename, remote_filename, metadata);
+      # if args.verbose>1 or response.status_code!=200: -->> status_code altijd 200 ook bij error
+      
+# print
+      print(json.dumps(response.json(), indent=4, sort_keys=True))
+      # else:
+      # print("ok")
+  except OSError as e:
+    print("ERROR: Skipping line",i+2,e)
+    pass
 
 
