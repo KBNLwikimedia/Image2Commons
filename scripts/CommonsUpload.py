@@ -2,6 +2,7 @@
 import os.path
 import pickle
 import requests
+import hashlib
 
 headers = {'User-Agent': 'Img2Commons'}
 api_url = 'https://commons.wikimedia.org/w/api.php'
@@ -9,16 +10,8 @@ api_url = 'https://commons.wikimedia.org/w/api.php'
 def get_edit_token(cookies):
   edit_token_response=requests.post(api_url, data={'action': 'query','format': 'json','meta': 'tokens'}, cookies=cookies)
   return edit_token_response.json()['query']['tokens']['csrftoken']
-
-def load_cookies(filename):
-  with open(filename, 'rb') as f:
-    return pickle.load(f)
-
-def save_cookies(filename, cookies):
-  with open(filename, 'wb') as f:
-    pickle.dump(cookies, f)
-
-def login(username, password, session_file_name="session"):
+  
+def login(username, password):
   # get login token
   payload = {'action': 'query', 'format': 'json', 'utf8': '', 'meta': 'tokens', 'type': 'login'}
   r1 = requests.post(api_url, data=payload)
@@ -28,28 +21,46 @@ def login(username, password, session_file_name="session"):
   login_payload = {'action': 'login', 'format': 'json', 'utf8': '','lgname': username, 'lgpassword': password, 'lgtoken': login_token}
   r2 = requests.post(api_url, data=login_payload, cookies=r1.cookies)
 
-  # save cookies
-  save_cookies(session_file_name, r2.cookies)
-
   # return response
-  return r2
+  return r2.cookies.copy()
 
 def exists(image_remote_filename):
   response = requests.get(api_url + "?action=query&format=json&titles=File:" + image_remote_filename)
   return '-1' not in response.json()['query']['pages']
 
-def upload(image_local_filename, image_remote_filename, meta_text, session_file_name="session"):
+def existsHashOfFile(image_local_filename):
+  response = requests.get(api_url + "?action=query&format=json&list=allimages&aisha1=" + getHashOfFile(image_local_filename))
+  return not not response.json()['query']['allimages']
+
+def upload(image_local_filename, image_remote_filename, meta_text, session_cookie):
   files={'file': (image_remote_filename, open(image_local_filename,'rb'), 'multipart/form-data')}
 
-  cookies = load_cookies(session_file_name)
+  # cookies = load_cookies(session_file_name)
 
   upload_payload={'action': 'upload',
     'format': 'json',
     'filename': image_remote_filename,
     'comment': 'Img2Commons',
     'text': meta_text,
-    'token': get_edit_token(cookies),
+    'token': get_edit_token(session_cookie),
     "ignorewarnings": 1}
 
-  return requests.post(api_url, data=upload_payload, files=files, cookies=cookies, headers=headers)
+  return requests.post(api_url, data=upload_payload, files=files, cookies=session_cookie, headers=headers)
+
+def getHashOfFile(filename):
+  h = hashlib.sha1()
+
+  # open file for reading in binary mode
+  with open(filename,'rb') as file:
+
+    # loop till the end of the file
+    chunk = 0
+    while chunk != b'':
+      # read only 1024 bytes at a time
+      chunk = file.read(1024)
+      h.update(chunk)
+
+  # return the hex representation of digest
+  return h.hexdigest()
+   
 
