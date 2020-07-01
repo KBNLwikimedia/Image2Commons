@@ -1,7 +1,7 @@
 =={_int:filedesc_}==
 
 {_Photograph
- |photographer = {{Vervaardiger | @replace: ", fotograaf", ""}}
+ |photographer = {{Vervaardiger | @strip | @replace: ", fotograaf", "" | ?= @prepend: "{_nl|1=" | @append: '_}' }}
  |title = 
  |description = {_nl|1={{Beschrijving}}_}
  |depicted people = 
@@ -16,7 +16,7 @@
  |exhibition history = 
  |credit line = 
  |inscriptions = 
- |notes = {{notities}}
+ |notes = {{notities | @strip | ?= @prepend: "{_nl|1=" | @append: '_}' }}
  |accession number = GUID: [https://hetutrechtsarchief.nl/beeld/{{GUID}} {{GUID}}], HUA Catalogusnummer: [https://hetutrechtsarchief.nl/collectie/beeldmateriaal/catalogusnummer/{{Catalogusnummer}} {{Catalogusnummer}}]
  |source = [https://hetutrechtsarchief.nl/beeld/{{GUID}} Het Utrechts Archief - Catalogusnummer {{Catalogusnummer}}]
  |permission = 

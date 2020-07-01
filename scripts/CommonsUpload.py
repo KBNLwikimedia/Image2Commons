@@ -32,7 +32,7 @@ def existsHashOfFile(image_local_filename):
   response = requests.get(api_url + "?action=query&format=json&list=allimages&aisha1=" + getHashOfFile(image_local_filename))
   return not not response.json()['query']['allimages']
 
-def upload(image_local_filename, image_remote_filename, meta_text, session_cookie):
+def upload(image_local_filename, image_remote_filename, meta_text, session_cookie, comment):
   files={'file': (image_remote_filename, open(image_local_filename,'rb'), 'multipart/form-data')}
 
   # cookies = load_cookies(session_file_name)
@@ -40,7 +40,7 @@ def upload(image_local_filename, image_remote_filename, meta_text, session_cooki
   upload_payload={'action': 'upload',
     'format': 'json',
     'filename': image_remote_filename,
-    'comment': 'Img2Commons',
+    'comment': comment,
     'text': meta_text,
     'token': get_edit_token(session_cookie),
     "ignorewarnings": 1}

@@ -11,6 +11,7 @@ if __name__ == '__main__':
   parser.add_argument('--metadata',help="metadata template", required=True)
   parser.add_argument('--local-image',help="local image template", required=True)
   parser.add_argument('--remote-image',help="remote image template", required=True)
+  parser.add_argument('--comment',help="upload summary/comment template", required=True)
   parser.add_argument('--login',nargs=2,help="username password", required=True)
   parser.add_argument('--rows',nargs=2,help="start-row end-row")
   # response = login(sys.argv[1], sys.argv[2], "session")
@@ -37,11 +38,12 @@ print("Load templates...")
 liq_meta = Liquid(args.metadata, liquid_from_file=True) 
 liq_local = Liquid(args.local_image, liquid_from_file=True) 
 liq_remote = Liquid(args.remote_image, liquid_from_file=True) 
+liq_comment = Liquid(args.comment, liquid_from_file=True) 
 
 #select rows
 if args.rows:
   begin=int(args.rows[0])
-  end=int(args.rows[1])
+  end=min(int(args.rows[1]),len(csv_dict))
 else:
   begin=0
   end=len(csv_dict)
@@ -56,22 +58,26 @@ for i in range(begin,end):
 
     local_filename = liq_local.render(**row)
     remote_filename = liq_remote.render(**row)
+    comment = liq_comment.render(**row)
     
     print("#"+str(i+2)+":",os.path.basename(local_filename), "->", remote_filename)
 
     if existsHashOfFile(local_filename):
       print("Skip: Hash of file exists")
-      continue      
+      if args.action=='upload':
+        continue      
 
     if exists(remote_filename):
       print("Skip: Filename Exists")
-      continue
+      if args.action=='upload':
+        continue
 
     if args.action=='test':
+      print("Upload summary:",comment)
       print(metadata)
 
     elif args.action=='upload':
-      response = upload(local_filename, remote_filename, metadata, session_cookie);
+      response = upload(local_filename, remote_filename, metadata, session_cookie, comment);
       
       data = response.json()
 
