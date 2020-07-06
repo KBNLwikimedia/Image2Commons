@@ -28,8 +28,8 @@ def exists(image_remote_filename):
   response = requests.get(api_url + "?action=query&format=json&titles=File:" + image_remote_filename)
   return '-1' not in response.json()['query']['pages']
 
-def existsHashOfFile(image_local_filename):
-  response = requests.get(api_url + "?action=query&format=json&list=allimages&aisha1=" + getHashOfFile(image_local_filename))
+def checkHashOnRemote(hash_of_file):
+  response = requests.get(api_url + "?action=query&format=json&list=allimages&aisha1=" + hash_of_file)
   return not not response.json()['query']['allimages']
 
 def upload(image_local_filename, image_remote_filename, meta_text, session_cookie, comment):
@@ -63,4 +63,23 @@ def getHashOfFile(filename):
   # return the hex representation of digest
   return h.hexdigest()
    
+def getAllFilesInCategory(category):
+  cmcontinue = ''
+  result = []
+
+  while True: 
+    base_url = api_url + '?action=query&list=categorymembers&'\
+              'cmtype=file&cmtitle=Category:'+category+'&'\
+              'cmlimit=max&format=json&cmcontinue=' + cmcontinue
+
+    response = requests.get(base_url + cmcontinue)
+    data = response.json()
+
+    if not 'continue' in data:
+      return result
+
+    cmcontinue = data['continue']['cmcontinue']
+
+    for i in data['query']['categorymembers']:
+      result.append(i['title'])
 

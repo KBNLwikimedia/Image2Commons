@@ -1,6 +1,6 @@
 #!/usr/local/bin/python3
-import json,sys,os,argparse
-from CommonsUpload import login, exists, existsHashOfFile, upload
+import json,sys,os,argparse,time
+from CommonsUpload import login, exists, getHashOfFile, checkHashOnRemote, upload
 import pandas
 from liquid import Liquid
 from datetime import datetime
@@ -14,7 +14,8 @@ if __name__ == '__main__':
   parser.add_argument('--comment',help="upload summary/comment template", required=True)
   parser.add_argument('--login',nargs=2,help="username password", required=True)
   parser.add_argument('--rows',nargs=2,help="start-row end-row")
-  # response = login(sys.argv[1], sys.argv[2], "session")
+  parser.add_argument('--hash-log',help="text file with hashes to skip")
+  parser.add_argument('--name-log',help="text file with remote filenames to skip")
 
   parser.add_argument('action', choices=['test', 'upload'])
   parser.add_argument('--verbose', '-v', action='count', default=0)
@@ -23,9 +24,8 @@ if __name__ == '__main__':
 print(datetime.now().strftime("%H:%M:%S"))
 
 # login
-if args.login:
-  print("Login...")
-  session_cookie = login(args.login[0],args.login[1])
+print("Login...")
+session_cookie = login(args.login[0],args.login[1])
 
 # read csv
 print("Load CSV...")
@@ -39,6 +39,16 @@ liq_meta = Liquid(args.metadata, liquid_from_file=True)
 liq_local = Liquid(args.local_image, liquid_from_file=True) 
 liq_remote = Liquid(args.remote_image, liquid_from_file=True) 
 liq_comment = Liquid(args.comment, liquid_from_file=True) 
+
+print("Load name-log: remote filenames to skip...")
+if args.name_log:
+  with open(str(args.name_log), "r") as file:
+    name_log = file.readlines()
+
+print("Load name-log: remote filenames to skip...")
+if args.hash_log:
+  with open(str(args.hash_log), "r") as file:
+    hash_log = file.readlines()
 
 #select rows
 if args.rows:
@@ -62,13 +72,28 @@ for i in range(begin,end):
     
     print("#"+str(i+2)+":",os.path.basename(local_filename), "->", remote_filename)
 
-    if existsHashOfFile(local_filename):
-      print("Skip: Hash of file exists")
+    if remote_filename in name_log:
+      print("Skip: File on list with remote filenames to skip")
+      if args.action=='upload':
+        continue
+
+    if remote_filename in hash_log:
+      print("Skip: File on list with hashes to skip")
+      if args.action=='upload':
+        continue  
+
+    if checkHashOnRemote(getHashOfFile(local_filename)):
+      print("Skip: Hash of file exists on remote")
+      
+      if args.hash_log:
+        with open(hash_log, "a") as file:
+          file.write(getHashOfFile(local_filename))
+
       if args.action=='upload':
         continue      
 
     if exists(remote_filename):
-      print("Skip: Filename Exists")
+      print("Skip: Remote filename exists")
       if args.action=='upload':
         continue
 
@@ -86,7 +111,11 @@ for i in range(begin,end):
 
         if data['error']['code']=="ratelimited":   #stop trying and quit on this error
           print(datetime.now().strftime("%H:%M:%S"))
-          sys.exit()
+          print("Waiting 15 minutes to continue...")
+          time.sleep(15*60)
+          print("Login...")
+          session_cookie = login(args.login[0],args.login[1])
+          # i=i-1 #try the last one again
 
       elif 'upload' in data and 'result' in data['upload']: 
         print(data['upload']['result']+":",data['upload']['imageinfo']['descriptionurl'])
@@ -95,7 +124,15 @@ for i in range(begin,end):
           print(data['upload']['warnings'])
 
       else:
+
+# with open(hash_log, "a") as file:
+        # file.write(getHashOfFile(local_filename))
+
+
         print(json.dumps(data, indent=4, sort_keys=True))
+
+    # print("Wait 5 seconds")
+    # time.sleep(5)
 
   except OSError as err:
     print("OS Error: Skipping line",i+2,err)
