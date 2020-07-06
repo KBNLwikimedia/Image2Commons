@@ -12,22 +12,10 @@ while True:
   response = requests.get(base_url + cmcontinue)
   data = response.json()
 
-  if not 'continue' in data:
-    break
-
-  cmcontinue = data['continue']['cmcontinue']
-
   for i in data['query']['categorymembers']:
     print(i['title'])
 
-  break
-  
-    # m = re.search('File:HUA-(\d+)-', i['title'])
-    # if m:
-    #   print(m.group(1))
-
-
-
-
-    
-
+  if 'continue' in data:
+    cmcontinue = data['continue']['cmcontinue']
+  else: 
+    break

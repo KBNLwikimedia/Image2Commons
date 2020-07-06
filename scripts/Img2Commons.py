@@ -13,9 +13,9 @@ if __name__ == '__main__':
   parser.add_argument('--remote-image',help="remote image template", required=True)
   parser.add_argument('--comment',help="upload summary/comment template", required=True)
   parser.add_argument('--login',nargs=2,help="username password", required=True)
-  parser.add_argument('--rows',nargs=2,help="start-row end-row")
-  parser.add_argument('--hash-log',help="text file with hashes to skip")
+  parser.add_argument('--hash-log',help="text file with hashes to skip (and to append to)")
   parser.add_argument('--name-log',help="text file with remote filenames to skip")
+  parser.add_argument('--rows',nargs=2,help="start-row end-row")
 
   parser.add_argument('action', choices=['test', 'upload'])
   parser.add_argument('--verbose', '-v', action='count', default=0)
@@ -43,12 +43,12 @@ liq_comment = Liquid(args.comment, liquid_from_file=True)
 print("Load name-log: remote filenames to skip...")
 if args.name_log:
   with open(str(args.name_log), "r") as file:
-    name_log = file.readlines()
+    name_log = file.read().splitlines()
 
 print("Load name-log: remote filenames to skip...")
 if args.hash_log:
   with open(str(args.hash_log), "r") as file:
-    hash_log = file.readlines()
+    hash_log = file.read().splitlines()
 
 #select rows
 if args.rows:
@@ -60,6 +60,8 @@ else:
 
 # for each record
 for i in range(begin,end):
+  sys.stdout.flush()
+
   try:
     row = csv_dict[i]
     metadata = liq_meta.render(**row)
@@ -77,17 +79,18 @@ for i in range(begin,end):
       if args.action=='upload':
         continue
 
-    if remote_filename in hash_log:
-      print("Skip: File on list with hashes to skip")
-      if args.action=='upload':
-        continue  
+    if args.hash_log:
+      if getHashOfFile(local_filename) in hash_log:
+        print("Skip: File on list with hashes to skip")
+        if args.action=='upload':
+          continue  
 
     if checkHashOnRemote(getHashOfFile(local_filename)):
       print("Skip: Hash of file exists on remote")
       
       if args.hash_log:
-        with open(hash_log, "a") as file:
-          file.write(getHashOfFile(local_filename))
+        with open(str(args.hash_log), "a") as file:   # add the hash to the list
+          file.write(getHashOfFile(local_filename) + "\n")
 
       if args.action=='upload':
         continue      
@@ -109,12 +112,13 @@ for i in range(begin,end):
       if 'error' in data and 'code' in data['error']:
         print("Upload Error",data['error']['code'],data['error']['info'])
 
-        if data['error']['code']=="ratelimited":   #stop trying and quit on this error
+        if data['error']['code']=="ratelimited":
           print(datetime.now().strftime("%H:%M:%S"))
           print("Waiting 15 minutes to continue...")
           time.sleep(15*60)
           print("Login...")
           session_cookie = login(args.login[0],args.login[1])
+          # FIXME: it should try the last one again instead going to the next
           # i=i-1 #try the last one again
 
       elif 'upload' in data and 'result' in data['upload']: 

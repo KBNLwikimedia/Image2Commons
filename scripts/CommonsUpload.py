@@ -35,8 +35,6 @@ def checkHashOnRemote(hash_of_file):
 def upload(image_local_filename, image_remote_filename, meta_text, session_cookie, comment):
   files={'file': (image_remote_filename, open(image_local_filename,'rb'), 'multipart/form-data')}
 
-  # cookies = load_cookies(session_file_name)
-
   upload_payload={'action': 'upload',
     'format': 'json',
     'filename': image_remote_filename,
