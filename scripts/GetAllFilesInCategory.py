@@ -1,7 +1,8 @@
 #!/usr/local/bin/python3
 import requests,json,re
 
-category = 'Images from Het Utrechts Archief'
+# category = 'Images from Het Utrechts Archief'
+category = 'Deelcollectie Nederlandse-Spoorwegen'
 cmcontinue = ''
 
 while True: 
