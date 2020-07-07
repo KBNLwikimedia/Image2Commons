@@ -35,7 +35,8 @@ def checkHashOnRemote(hash_of_file):
 def upload(image_local_filename, image_remote_filename, meta_text, session_cookie, comment):
   files={'file': (image_remote_filename, open(image_local_filename,'rb'), 'multipart/form-data')}
 
-  upload_payload={'action': 'upload',
+  upload_payload={
+    'action': 'upload',
     'format': 'json',
     'filename': image_remote_filename,
     'comment': comment,
@@ -69,7 +70,7 @@ def getAllFilesInCategory(category):
     base_url = api_url + '?action=query&list=categorymembers&'\
               'cmtype=file&cmtitle=Category:'+category+'&'\
               'cmlimit=max&format=json&cmcontinue=' + cmcontinue
-
+    
     response = requests.get(base_url + cmcontinue)
     data = response.json()
 
@@ -80,4 +81,3 @@ def getAllFilesInCategory(category):
 
     for i in data['query']['categorymembers']:
       result.append(i['title'])
-
