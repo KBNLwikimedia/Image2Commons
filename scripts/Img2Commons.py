@@ -16,6 +16,7 @@ if __name__ == '__main__':
   parser.add_argument('--hash-log',help="text file with hashes to skip (and to append to)")
   parser.add_argument('--name-log',help="text file with remote filenames to skip")
   parser.add_argument('--rows',nargs=2,help="start-row end-row")
+  parser.add_argument('--resume-file',help="filename containing number where to continue when restarting")
 
   parser.add_argument('action', choices=['test', 'upload'])
   parser.add_argument('--verbose', '-v', action='count', default=0)
@@ -54,6 +55,10 @@ if args.hash_log:
 if args.rows:
   begin=int(args.rows[0])
   end=min(int(args.rows[1]),len(csv_dict))
+elif args.resume_file:
+  with open(str(args.resume_file), "r") as file:
+    begin = int(file.readline())
+  end=len(csv_dict)
 else:
   begin=0
   end=len(csv_dict)
@@ -61,6 +66,10 @@ else:
 # for each record
 for i in range(begin,end):
   sys.stdout.flush()
+
+  if args.resume_file:
+    with open(str(args.resume_file), "w") as file:
+      file.write(str(i))
 
   try:
     row = csv_dict[i]
@@ -115,6 +124,7 @@ for i in range(begin,end):
         if data['error']['code']=="ratelimited":
           print(datetime.now().strftime("%H:%M:%S"))
           print("Waiting 15 minutes to continue...")
+          sys.stdout.flush()
           time.sleep(15*60)
           print("Login...")
           session_cookie = login(args.login[0],args.login[1])
