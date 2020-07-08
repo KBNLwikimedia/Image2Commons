@@ -74,10 +74,11 @@ def getAllFilesInCategory(category):
     response = requests.get(base_url + cmcontinue)
     data = response.json()
 
-    if not 'continue' in data:
-      return result
-
-    cmcontinue = data['continue']['cmcontinue']
-
     for i in data['query']['categorymembers']:
       result.append(i['title'])
+
+    if not 'continue' in data:
+      return result
+    else:
+      cmcontinue = data['continue']['cmcontinue']
+
